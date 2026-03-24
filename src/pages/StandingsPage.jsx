@@ -28,9 +28,12 @@ export default function StandingsPage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [isOffline, setIsOffline] = useState(false);
+  const [error, setError] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState('');
 
-  useEffect(() => {
-    localStorage.setItem('f1_last_opened', 'standings');
+  const fetchStandingsData = () => {
+    setLoading(true);
+    setError(false);
     Promise.all([
       getDriverStandings(),
       getConstructorStandings()
@@ -38,21 +41,33 @@ export default function StandingsPage() {
       setDrivers(d || []);
       setConstructors(c || []);
       
-      // Offline Cache
       if (d && c) {
         localStorage.setItem('f1_standings_d', JSON.stringify(d));
         localStorage.setItem('f1_standings_c', JSON.stringify(c));
         setIsOffline(false);
+        setLastUpdated(new Date().toLocaleTimeString());
+      } else {
+        throw new Error("No data returned");
       }
       setLoading(false);
     }).catch(err => {
       console.error("Standings error:", err);
-      // Fallback
-      setDrivers(JSON.parse(localStorage.getItem('f1_standings_d') || '[]'));
-      setConstructors(JSON.parse(localStorage.getItem('f1_standings_c') || '[]'));
-      setIsOffline(true);
+      const cachedD = localStorage.getItem('f1_standings_d');
+      const cachedC = localStorage.getItem('f1_standings_c');
+      if (cachedD && cachedC) {
+        setDrivers(JSON.parse(cachedD));
+        setConstructors(JSON.parse(cachedC));
+        setIsOffline(true);
+      } else {
+        setError(true);
+      }
       setLoading(false);
     });
+  };
+
+  useEffect(() => {
+    localStorage.setItem('f1_last_opened', 'standings');
+    fetchStandingsData();
   }, []);
 
   const filteredDrivers = drivers.filter(d => 
@@ -65,6 +80,17 @@ export default function StandingsPage() {
     c.Constructor.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  if (error) {
+    return (
+      <div className="flex flex-col h-full items-center justify-center bg-darker text-gray-400 p-8 space-y-6">
+        <Trophy size={64} className="text-gray-700 mb-4" />
+        <h2 className="text-2xl font-black uppercase tracking-widest text-white">Data Fetch Failed</h2>
+        <p className="font-mono text-sm max-w-md text-center">Unable to load standings from the server, and no offline cache is available.</p>
+        <button onClick={fetchStandingsData} className="px-8 py-3 bg-f1red text-white uppercase tracking-widest font-bold rounded-xl shadow-[0_0_15px_rgba(225,6,0,0.5)] hover:scale-105 transition-all">Retry Connection</button>
+      </div>
+    );
+  }
+
   return (
     <div className="p-8 h-full flex flex-col pt-12">
       <div className="flex flex-col lg:flex-row justify-between lg:items-center mb-8 gap-4">
@@ -72,7 +98,14 @@ export default function StandingsPage() {
            <h2 className="text-4xl font-extrabold tracking-tight uppercase flex items-center gap-3">
              <Trophy className="text-f1red" size={36}/> Championship Standings
            </h2>
-           {isOffline && <span className="text-f1red font-mono text-xs uppercase tracking-widest mt-1 block animate-pulse">Offline Mode (Cached Data)</span>}
+           <div className="flex items-center gap-3 mt-2">
+             {isOffline ? (
+               <span className="text-f1red font-mono text-xs uppercase tracking-widest block animate-pulse border border-red-900/50 bg-red-900/20 px-2 py-1 rounded">Offline Mode (Cached)</span>
+             ) : (
+               <span className="text-green-500 font-mono text-xs uppercase tracking-widest block border border-green-900/50 bg-green-900/20 px-2 py-1 rounded">Live Data</span>
+             )}
+             {lastUpdated && <span className="text-gray-500 font-mono text-[10px] uppercase tracking-widest">Last Updated: {lastUpdated}</span>}
+           </div>
         </div>
         
         <div className="relative">

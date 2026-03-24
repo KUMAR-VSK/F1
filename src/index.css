@@ -27,3 +27,21 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #555; 
 }
+
+/* Light Mode Magic Invert */
+.light-mode {
+  filter: invert(1) hue-rotate(180deg) brightness(1.2);
+  background-color: #fff;
+}
+.light-mode img,
+.light-mode video,
+.light-mode svg,
+.light-mode .no-invert,
+.light-mode [class*="text-red"],
+.light-mode [class*="text-f1red"],
+.light-mode [class*="bg-f1red"],
+.light-mode [class*="text-yellow"],
+.light-mode [class*="text-green"],
+.light-mode [class*="text-amber"] {
+  filter: invert(1) hue-rotate(180deg);
+}

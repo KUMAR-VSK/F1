@@ -10,6 +10,8 @@ export default function LiveTelemetry() {
   const [loading, setLoading] = useState(true);
   const [sessionInfo, setSessionInfo] = useState(null);
   const [commentaryFeed, setCommentaryFeed] = useState([]);
+  const [error, setError] = useState(null);
+  const [lastUpdated, setLastUpdated] = useState('');
   
   const prevTelemetry = useRef({});
   const processedPits = useRef(new Set());
@@ -106,10 +108,21 @@ export default function LiveTelemetry() {
 
       data.telemetry.forEach(d => { prevTelemetry.current[d.driver_number] = d; });
       setTelemetryState(data);
+      setLastUpdated(timestamp);
+      setError(null);
     };
 
-    fetchTelemetry();
-    const interval = setInterval(fetchTelemetry, 3500); // 3.5s rapid polling
+    const fetchSafe = async () => {
+      try {
+        await fetchTelemetry();
+      } catch (err) {
+        console.error(err);
+        setError("Connection to F1 telemetry dropped");
+      }
+    };
+
+    fetchSafe();
+    const interval = setInterval(fetchSafe, 8000); // 8s batched / debounced polling
     return () => clearInterval(interval);
   }, [sessionInfo]);
 
@@ -130,7 +143,25 @@ export default function LiveTelemetry() {
 
   const flagStyle = currentFlagColors[telemetryState.currentFlag] || currentFlagColors['UNKNOWN'];
 
+  const handleManualRetry = () => {
+    setLoading(true);
+    setError(null);
+    window.dispatchEvent(new Event('resize')); // hacky but safe trigger
+    setTimeout(() => window.location.reload(), 200);
+  };
+
   if (loading) return <div className="h-full flex items-center justify-center text-f1red animate-pulse text-xl uppercase font-black tracking-widest bg-darker"><Activity className="animate-spin mr-3"/> Connecting Telemetry...</div>;
+
+  if (error && !telemetryState.telemetry.length) {
+    return (
+      <div className="flex flex-col h-full items-center justify-center bg-darker text-gray-400 p-8 space-y-6">
+        <Activity size={64} className="text-gray-700 animate-pulse mb-4" />
+        <h2 className="text-2xl font-black uppercase tracking-widest text-white">Telemetry Disconnected</h2>
+        <p className="font-mono text-sm max-w-md text-center">{error}</p>
+        <button onClick={handleManualRetry} className="px-8 py-3 bg-f1red text-white uppercase tracking-widest font-bold rounded-xl shadow-[0_0_15px_rgba(225,6,0,0.5)] hover:scale-105 transition-all">Force Reconnect</button>
+      </div>
+    );
+  }
 
   return (
     <div className="h-full bg-darker p-6 overflow-hidden flex flex-col">
@@ -139,8 +170,13 @@ export default function LiveTelemetry() {
           <h2 className="text-3xl font-extrabold text-white uppercase tracking-tight flex items-center gap-4">
             Pit Wall Telemetry
             {sessionInfo && <span className="text-xs bg-f1red text-white px-3 py-1 rounded shadow-lg shadow-f1red/50 animate-pulse flex items-center gap-1"><Radio size={12}/> LIVE</span>}
+            {error && <span className="text-xs border border-red-500 text-red-500 bg-red-500/10 px-3 py-1 rounded shadow-lg animate-pulse flex items-center gap-1">CONNECTION UNSTABLE</span>}
           </h2>
-          <p className="text-gray-400 font-mono tracking-wide text-sm mt-1">{sessionInfo ? `${sessionInfo.raceName} - ${sessionInfo.name}` : 'Awaiting Next Live Session Data Stream'}</p>
+          <div className="text-gray-400 font-mono tracking-wide text-sm mt-1 flex items-center gap-3">
+             <span>{sessionInfo ? `${sessionInfo.raceName} - ${sessionInfo.name}` : 'Awaiting Next Live Session Data Stream'}</span>
+             <span className="text-gray-600">|</span>
+             {lastUpdated && <span className="text-gray-500 font-mono text-[10px] uppercase tracking-widest bg-gray-900 px-2 py-0.5 rounded border border-gray-800">Updated: {lastUpdated}</span>}
+          </div>
         </div>
 
         <div className="flex items-center gap-4">
@@ -178,9 +214,14 @@ export default function LiveTelemetry() {
           
           <Leaderboard telemetry={telemetryState.telemetry} sessionInfo={sessionInfo} />
           
-          <div className="p-2 bg-black/40 border-t border-gray-800 flex items-center gap-2 text-[10px] uppercase text-gray-500 font-mono tracking-widest justify-end pr-4">
-             <Activity size={10} className="text-green-500 animate-pulse"/>
-             Sync: 3.5s refresh · OpenF1 Data
+          <div className="p-2 bg-black/40 border-t border-gray-800 flex items-center gap-2 text-[10px] uppercase text-gray-500 font-mono tracking-widest justify-between px-4">
+             <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> OpenF1 Live Pipeline
+             </div>
+             <div className="flex items-center gap-2">
+                <Activity size={10} className="text-f1red animate-pulse"/>
+                Sync: Batched 8.0s (Debounced)
+             </div>
           </div>
         </div>
 

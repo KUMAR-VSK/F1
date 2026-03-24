@@ -1,21 +1,42 @@
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import React, { Suspense, useEffect, useRef, useState } from 'react';
 import Sidebar from './components/Sidebar';
-import DashboardPage from './pages/DashboardPage';
-import StandingsPage from './pages/StandingsPage';
-import WeekendView from './pages/WeekendView';
-import LiveTelemetry from './pages/LiveTelemetry';
-import WatchPage from './pages/WatchPage';
-import SettingsPage from './pages/SettingsPage';
-import { useEffect, useRef } from 'react';
 import { getCurrentWeekend } from './services/sessionService';
 import { triggerNotification } from './services/notificationService';
+import { Trophy } from 'lucide-react';
+
+const DashboardPage = React.lazy(() => import('./pages/DashboardPage'));
+const StandingsPage = React.lazy(() => import('./pages/StandingsPage'));
+const WeekendView = React.lazy(() => import('./pages/WeekendView'));
+const LiveTelemetry = React.lazy(() => import('./pages/LiveTelemetry'));
+const WatchPage = React.lazy(() => import('./pages/WatchPage'));
+const SettingsPage = React.lazy(() => import('./pages/SettingsPage'));
+
+const Loader = () => (
+  <div className="flex h-full items-center justify-center bg-transparent text-f1red font-bold animate-pulse text-xl uppercase tracking-widest gap-3 w-full">
+    <Trophy className="animate-spin text-f1red" /> Loading Module...
+  </div>
+);
 
 function App() {
   const notifiedSessions = useRef(new Set());
+  const [theme, setTheme] = useState(localStorage.getItem('f1_theme') || 'dark');
+
+  useEffect(() => {
+    // Theme listener
+    const applyTheme = () => {
+       const userTheme = localStorage.getItem('f1_theme') || 'dark';
+       setTheme(userTheme);
+       if (userTheme === 'light') document.documentElement.classList.add('light-mode');
+       else document.documentElement.classList.remove('light-mode');
+    };
+    applyTheme();
+    window.addEventListener('storage', applyTheme);
+    return () => window.removeEventListener('storage', applyTheme);
+  }, []);
 
   useEffect(() => {
     const checkSessions = async () => {
-      // Check if notifications are disabled in settings
       const notifsEnabled = localStorage.getItem('f1_notifications') !== 'false';
       if (!notifsEnabled) return;
 
@@ -37,7 +58,6 @@ function App() {
       });
     };
     
-    // Check every minute
     checkSessions();
     const interval = setInterval(checkSessions, 60000);
     return () => clearInterval(interval);
@@ -47,22 +67,23 @@ function App() {
 
   return (
     <Router>
-      <div className="flex h-screen bg-[#0a0a0c]">
+      <div className={`flex h-screen bg-appBg text-appText transition-colors duration-300 ${theme}`}>
         <Sidebar />
         <main className="flex-1 overflow-hidden relative selection:bg-f1red selection:text-white">
-          {/* Drag area for macOS frameless window */}
           <div className="h-8 absolute top-0 left-0 right-0 app-region-drag z-50"></div>
           
           <div className="h-full pt-8 overflow-y-auto w-full block">
-            <Routes>
-              <Route path="/" element={<Navigate to={`/${lastOpened}`} replace />} />
-              <Route path="/weekend" element={<WeekendView />} />
-              <Route path="/live" element={<LiveTelemetry />} />
-              <Route path="/watch" element={<WatchPage />} />
-              <Route path="/dashboard" element={<DashboardPage />} />
-              <Route path="/standings" element={<StandingsPage />} />
-              <Route path="/settings" element={<SettingsPage />} />
-            </Routes>
+            <Suspense fallback={<Loader />}>
+              <Routes>
+                <Route path="/" element={<Navigate to={`/${lastOpened}`} replace />} />
+                <Route path="/weekend" element={<WeekendView />} />
+                <Route path="/live" element={<LiveTelemetry />} />
+                <Route path="/watch" element={<WatchPage />} />
+                <Route path="/dashboard" element={<DashboardPage />} />
+                <Route path="/standings" element={<StandingsPage />} />
+                <Route path="/settings" element={<SettingsPage />} />
+              </Routes>
+            </Suspense>
           </div>
         </main>
       </div>

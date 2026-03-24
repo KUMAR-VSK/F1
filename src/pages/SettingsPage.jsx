@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Settings, Save, Link2, Bell, Shield, Palette } from 'lucide-react';
+import { Settings, Save, Link2, Bell, Shield, Sun, Moon } from 'lucide-react';
 
 export default function SettingsPage() {
   const [streamUrl, setStreamUrl] = useState('');
   const [notifications, setNotifications] = useState(true);
   const [offlineMode, setOfflineMode] = useState(true);
+  const [theme, setTheme] = useState('dark');
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
@@ -12,16 +13,21 @@ export default function SettingsPage() {
     const storedUrl = localStorage.getItem('f1_custom_stream_url') || '';
     const storedNotifs = localStorage.getItem('f1_notifications') !== 'false';
     const storedOffline = localStorage.getItem('f1_offline_mode') !== 'false';
+    const storedTheme = localStorage.getItem('f1_theme') || 'dark';
     
     setStreamUrl(storedUrl);
     setNotifications(storedNotifs);
     setOfflineMode(storedOffline);
+    setTheme(storedTheme);
   }, []);
 
   const handleSave = () => {
     localStorage.setItem('f1_custom_stream_url', streamUrl);
     localStorage.setItem('f1_notifications', notifications);
     localStorage.setItem('f1_offline_mode', offlineMode);
+    localStorage.setItem('f1_theme', theme);
+    // Dispatch storage event so App.jsx rerenders real-time
+    window.dispatchEvent(new Event('storage'));
     
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
@@ -91,7 +97,29 @@ export default function SettingsPage() {
                  <span className="ml-4 text-sm font-bold text-gray-300 uppercase tracking-widest">{offlineMode ? 'Active' : 'Bypass'}</span>
               </label>
             </div>
-            
+          </div>
+          
+          <div className="bg-gray-900/60 backdrop-blur-md rounded-2xl border border-gray-800 p-8 shadow-xl mt-8">
+            <h3 className="text-xl font-bold uppercase tracking-widest text-white mb-4 flex items-center gap-2">
+              {theme === 'dark' ? <Moon size={24} className="text-f1red" /> : <Sun size={24} className="text-yellow-500" />} Application Theme
+            </h3>
+            <p className="text-gray-400 text-sm mb-6 font-mono leading-relaxed">
+              Toggle the complete user experience theme. Light mode forces an inverted visual aesthetic optimized for bright rooms (Experimental).
+            </p>
+            <div className="flex bg-black/60 border border-gray-700 rounded-xl p-1.5 w-fit">
+               <button 
+                 onClick={() => setTheme('dark')}
+                 className={`flex items-center gap-2 px-8 py-3 rounded-lg font-bold uppercase tracking-widest text-sm transition-all ${theme === 'dark' ? 'bg-f1red text-white shadow-md scale-105' : 'text-gray-500 hover:text-white'}`}
+               >
+                 <Moon size={16} /> Dark
+               </button>
+               <button 
+                 onClick={() => setTheme('light')}
+                 className={`flex items-center gap-2 px-8 py-3 rounded-lg font-bold uppercase tracking-widest text-sm transition-all ${theme === 'light' ? 'bg-f1red text-white shadow-md scale-105' : 'text-gray-500 hover:text-white'}`}
+               >
+                 <Sun size={16} /> Light
+               </button>
+            </div>
           </div>
 
           <div className="flex justify-end pt-4 mt-8 border-t border-gray-800/50">
