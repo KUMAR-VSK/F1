@@ -16,7 +16,7 @@ function createWindow() {
 
   // Open target links externally so they don't break the app flow
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    if (url.includes('fancode.com')) {
+    if (url.includes('fancode.com') || url.includes('auvio.rtbf.be') || url.includes('rtbf.be')) {
       return { action: 'allow' };
     }
     shell.openExternal(url);
@@ -48,6 +48,21 @@ app.whenReady().then(() => {
       }
     });
     streamWindow.loadURL('https://www.fancode.com/formula1');
+  });
+
+  ipcMain.on('open-rtbf', () => {
+    const streamWindow = new BrowserWindow({
+      width: 1024,
+      height: 768,
+      backgroundColor: '#000000',
+      title: 'RTBF Auvio - F1 Stream',
+      webPreferences: {
+        nodeIntegration: false,
+        contextIsolation: true,
+        sandbox: true,
+      }
+    });
+    streamWindow.loadURL('https://auvio.rtbf.be');
   });
 
   ipcMain.on('trigger-notification', (event, { title, body }) => {
