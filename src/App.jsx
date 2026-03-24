@@ -3,6 +3,7 @@ import Sidebar from './components/Sidebar';
 import WatchRace from './pages/WatchRace';
 import DashboardPage from './pages/DashboardPage';
 import StandingsPage from './pages/StandingsPage';
+import WeekendView from './pages/WeekendView';
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
           <div className="h-full pt-8 overflow-y-auto">
             <Routes>
               <Route path="/" element={<WatchRace />} />
+              <Route path="/weekend" element={<WeekendView />} />
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/standings" element={<StandingsPage />} />
             </Routes>

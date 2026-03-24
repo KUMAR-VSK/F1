@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { PlayCircle, LayoutDashboard, Trophy } from 'lucide-react';
+import { PlayCircle, LayoutDashboard, Trophy, CalendarDays } from 'lucide-react';
 
 export default function Sidebar() {
   return (
@@ -14,6 +14,10 @@ export default function Sidebar() {
         <NavLink to="/" className={({isActive}) => `flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive ? 'bg-card text-white shadow-lg border border-gray-700/50' : 'text-gray-400 hover:text-white hover:bg-gray-800/50'}`}>
           <PlayCircle size={20} />
           <span className="font-medium">Watch Race</span>
+        </NavLink>
+        <NavLink to="/weekend" className={({isActive}) => `flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive ? 'bg-card text-white shadow-lg border border-gray-700/50' : 'text-gray-400 hover:text-white hover:bg-gray-800/50'}`}>
+          <CalendarDays size={20} />
+          <span className="font-medium">Weekend</span>
         </NavLink>
         <NavLink to="/dashboard" className={({isActive}) => `flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive ? 'bg-card text-white shadow-lg border border-gray-700/50' : 'text-gray-400 hover:text-white hover:bg-gray-800/50'}`}>
           <LayoutDashboard size={20} />
