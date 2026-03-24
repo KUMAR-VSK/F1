@@ -3,6 +3,7 @@ import Sidebar from './components/Sidebar';
 import DashboardPage from './pages/DashboardPage';
 import StandingsPage from './pages/StandingsPage';
 import WeekendView from './pages/WeekendView';
+import LiveTelemetry from './pages/LiveTelemetry';
 import { useEffect, useRef } from 'react';
 import { getCurrentWeekend } from './services/sessionService';
 import { triggerNotification } from './services/notificationService';
@@ -46,10 +47,11 @@ function App() {
           {/* Drag area for macOS frameless window */}
           <div className="h-8 absolute top-0 left-0 right-0 app-region-drag z-50"></div>
           
-          <div className="h-full pt-8 overflow-y-auto">
+          <div className="h-full pt-8 overflow-y-auto w-full block">
             <Routes>
               <Route path="/" element={<Navigate to={`/${lastOpened}`} replace />} />
               <Route path="/weekend" element={<WeekendView />} />
+              <Route path="/live" element={<LiveTelemetry />} />
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/standings" element={<StandingsPage />} />
             </Routes>

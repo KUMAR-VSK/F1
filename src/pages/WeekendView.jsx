@@ -1,19 +1,14 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { PlayCircle, Clock, CheckCircle, Activity, Trophy } from 'lucide-react';
+import { PlayCircle, Clock, CheckCircle, Activity, Youtube, ExternalLink } from 'lucide-react';
 import { getCurrentWeekend } from '../services/sessionService';
-import { getLivePositions } from '../services/openF1Service';
 
 export default function WeekendView() {
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [liveData, setLiveData] = useState([]);
-  const [isDataLoading, setIsDataLoading] = useState(false);
-  const [lastOpened, setLastOpened] = useState(null);
 
   useEffect(() => {
     localStorage.setItem('f1_last_opened', 'weekend');
-    setLastOpened(new Date().toISOString());
 
     const fetchSessions = async () => {
       try {
@@ -33,26 +28,6 @@ export default function WeekendView() {
     return () => clearInterval(sessionInterval);
   }, []);
 
-  // Poll for live data if a session is currently live
-  useEffect(() => {
-    const liveSession = sessions.find(s => s.status === 'LIVE');
-    if (!liveSession) {
-      setLiveData([]);
-      return;
-    }
-
-    const fetchLiveData = async () => {
-      setIsDataLoading(true);
-      const data = await getLivePositions();
-      if (data && data.length > 0) setLiveData(data);
-      setIsDataLoading(false);
-    };
-
-    fetchLiveData();
-    const dataInterval = setInterval(fetchLiveData, 15000); // Every 15 seconds
-    return () => clearInterval(dataInterval);
-  }, [sessions]);
-
   // Countdown timer logic
   const [now, setNow] = useState(new Date().getTime());
   useEffect(() => {
@@ -69,11 +44,12 @@ export default function WeekendView() {
     return `${h.toString().padStart(2, '0')}h ${m.toString().padStart(2, '0')}m ${s.toString().padStart(2, '0')}s`;
   };
 
-  const handleWatch = () => {
+  const handleWatch = (url) => {
     if (window.electron && window.electron.openFanCode) {
-      window.electron.openFanCode();
+      if(url === 'fancode') window.electron.openFanCode();
+      else window.open(url, '_blank');
     } else {
-      window.open('https://www.fancode.com/formula1', '_blank');
+      window.open(url === 'fancode' ? 'https://www.fancode.com/formula1' : url, '_blank');
     }
   };
 
@@ -87,11 +63,10 @@ export default function WeekendView() {
         <p className="text-xl text-gray-400 font-semibold tracking-wider font-mono">{sessions[0]?.circuit}</p>
       </div>
 
-      {/* MULTI-VIEW LAYOUT */}
       <div className="mx-auto max-w-7xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-start relative z-10">
         
         {/* SESSIONS TIMELINE */}
-        <div className="lg:col-span-8 bg-black/60 backdrop-blur-md rounded-3xl border border-gray-800 p-8 shadow-2xl">
+        <div className="lg:col-span-7 bg-gray-900/60 backdrop-blur-md rounded-3xl border border-gray-800 p-8 shadow-2xl">
           <h3 className="text-2xl font-bold mb-8 flex items-center gap-4 text-white uppercase tracking-wider">
             Weekend Schedule
             {sessions.some(s => s.status === 'LIVE') && (
@@ -132,13 +107,13 @@ export default function WeekendView() {
 
                   <div className="flex items-center">
                     <button 
-                      onClick={handleWatch}
+                      onClick={() => handleWatch('fancode')}
                       className={`flex items-center gap-2 px-8 py-4 rounded-xl font-bold uppercase tracking-widest text-sm transition-all focus:outline-none 
-                        ${isLive ? 'bg-f1red text-white shadow-[0_0_20px_rgba(225,6,0,0.5)] hover:bg-red-600 hover:scale-105 active:scale-95' 
+                        ${isLive ? 'bg-f1red text-white shadow-[0_0_20px_rgba(225,6,0,0.5)] hover:bg-red-600 hover:scale-105' 
                         : isCompleted ? 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white border border-gray-700/50' 
-                        : 'bg-green-600 hover:bg-green-500 text-white shadow hover:scale-105 active:scale-95'}`}
+                        : 'bg-green-600 hover:bg-green-500 text-white shadow hover:scale-105'}`}
                     >
-                      <span>{isLive ? 'Watch FanCode' : isCompleted ? 'Highlights' : 'Remind Me'}</span>
+                      <span>{isLive ? 'Watch FanCode' : isCompleted ? 'Official Stream' : 'Remind Me'}</span>
                       <PlayCircle size={20} className={isLive ? 'animate-pulse' : ''} />
                     </button>
                   </div>
@@ -149,49 +124,44 @@ export default function WeekendView() {
           </div>
         </div>
 
-        {/* LIVE DATA PANEL */}
-        <div className="lg:col-span-4 flex flex-col gap-6">
-          <div className="bg-black/60 backdrop-blur-md rounded-3xl border border-gray-800 p-6 shadow-2xl h-full min-h-[500px]">
-            <h3 className="text-xl font-bold mb-6 flex items-center justify-between text-white uppercase tracking-wider relative">
-              <span className="flex items-center gap-2"><Trophy className="text-yellow-500" size={20}/> Live Positions</span>
-              {isDataLoading && <Activity size={16} className="animate-spin text-f1red" />}
+        {/* OFFICIAL HIGHLIGHTS */}
+        <div className="lg:col-span-5 flex flex-col gap-6">
+          <div className="bg-gray-900/60 backdrop-blur-md rounded-3xl border border-gray-800 p-8 shadow-2xl h-full min-h-[500px]">
+            <h3 className="text-xl font-bold mb-6 flex items-center gap-3 text-white uppercase tracking-wider relative border-b border-gray-800 pb-4">
+              <Youtube className="text-red-500" size={24}/> Official Highlights
             </h3>
             
-            {!sessions.some(s => s.status === 'LIVE') ? (
-               <div className="h-full flex flex-col items-center justify-center opacity-50 pt-20">
-                 <Activity size={48} className="mb-4 text-gray-600" />
-                 <p className="text-center text-gray-400 font-mono tracking-wide uppercase text-sm">Telemetry offline.<br/>Waiting for live session.</p>
-               </div>
-            ) : liveData.length === 0 ? (
-               <div className="h-full flex items-center justify-center p-8">
-                 <p className="text-gray-400 font-mono text-sm animate-pulse">Initializing Telemetry Link...</p>
-               </div>
-            ) : (
-               <div className="overflow-hidden rounded-xl border border-gray-800 bg-gray-900/50">
-                 <div className="grid grid-cols-12 gap-2 font-mono text-xs font-bold text-gray-500 uppercase tracking-widest bg-black/50 p-3 border-b border-gray-800">
-                    <div className="col-span-2 text-center">Pos</div>
-                    <div className="col-span-10">Driver</div>
-                 </div>
-                 <div className="max-h-[500px] overflow-y-auto no-scrollbar pb-2">
-                   <AnimatePresence>
-                     {liveData.map((d, i) => (
-                       <motion.div 
-                         key={d.driver_number} 
-                         initial={{ opacity: 0, x: 20 }}
-                         animate={{ opacity: 1, x: 0 }}
-                         transition={{ delay: i * 0.05 }}
-                         className="grid grid-cols-12 gap-2 items-center p-3 border-b border-gray-800/30 hover:bg-gray-800 transition-colors"
-                       >
-                         <div className="col-span-2 text-center font-black text-lg text-white">{d.position || i+1}</div>
-                         <div className="col-span-10 flex items-center justify-between">
-                            <span className="font-bold text-gray-200 tracking-wide uppercase">{d.driver_number || 'DRV'}</span>
-                         </div>
-                       </motion.div>
-                     ))}
-                   </AnimatePresence>
-                 </div>
-               </div>
-            )}
+            <div className="space-y-6">
+              {[
+                { name: 'Race Highlights', type: 'Race', available: sessions.find(s => s.id === 'Race')?.status === 'COMPLETED' },
+                { name: 'Qualifying Highlights', type: 'Qualifying', available: sessions.find(s => s.id === 'Qualifying')?.status === 'COMPLETED' },
+                { name: 'Practice Highlights', type: 'FirstPractice', available: sessions.find(s => s.id === 'FirstPractice')?.status === 'COMPLETED' }
+              ].map((hl, i) => (
+                <div key={i} className="bg-black/40 rounded-2xl p-6 border border-gray-800 shadow-md flex items-center justify-between group transition-colors hover:bg-black/60">
+                  <div>
+                    <h4 className="font-bold text-lg text-gray-200 uppercase tracking-wide">{hl.name}</h4>
+                    <p className="text-xs font-mono text-gray-500 mt-2 flex items-center gap-1">
+                      {hl.available ? <span className="text-green-500 flex items-center gap-1"><CheckCircle size={12}/> Ready to watch</span> : <span>Processing video...</span>}
+                    </p>
+                  </div>
+                  <div>
+                    <button 
+                      onClick={() => handleWatch('https://www.youtube.com/@Formula1')}
+                      disabled={!hl.available}
+                      className={`flex items-center justify-center w-12 h-12 rounded-xl transition-all ${hl.available ? 'bg-gray-800 text-white hover:bg-f1red hover:text-white hover:scale-110 shadow-lg' : 'bg-gray-800/30 text-gray-600 cursor-not-allowed border border-gray-800'}`}
+                    >
+                      {hl.available ? <PlayCircle size={24} /> : <Clock size={24} />}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-8 p-4 bg-red-900/10 border border-red-900/30 rounded-xl text-center">
+               <p className="text-xs text-gray-400 leading-relaxed font-mono">
+                 All highlights redirect to the <span className="text-gray-300 font-bold">Official F1 YouTube Channel</span>. For full replays, please access <a href="#" onClick={() => handleWatch('https://f1tv.formula1.com')} className="text-f1red underline inline-flex items-center gap-1 hover:text-red-400">F1 TV <ExternalLink size={10}/></a> or FanCode.
+               </p>
+            </div>
           </div>
         </div>
 
