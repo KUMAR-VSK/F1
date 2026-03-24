@@ -6,7 +6,7 @@ export default function Sidebar() {
     <div className="w-64 bg-dark flex flex-col pt-12 border-r border-gray-800 h-full">
       <div className="px-6 mb-8 flex items-center justify-center">
         <h1 className="text-xl font-bold text-white flex flex-col items-center gap-1 tracking-tight">
-          <span className="flex items-center gap-2"><span className="text-f1red text-2xl">F1</span> LIVE</span>
+          <span className="flex items-center gap-2 text-2xl">🏎️ <span className="text-f1red">F1</span></span>
           <span className="text-gray-400 text-[10px] tracking-widest uppercase">Companion App</span>
         </h1>
       </div>
@@ -17,8 +17,12 @@ export default function Sidebar() {
           <span className="font-medium tracking-wide">Weekend View</span>
         </NavLink>
         <NavLink to="/live" className={({isActive}) => `flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive ? 'bg-f1red text-white shadow-[0_0_15px_rgba(225,6,0,0.4)] border border-red-800 scale-105' : 'text-gray-400 hover:text-white hover:bg-gray-800/50 hover:scale-105'}`}>
-          <Radio size={20} className={isActive ? 'animate-pulse text-white' : ''} />
-          <span className="font-medium tracking-wide">Live Telemetry</span>
+          {({isActive}) => (
+            <>
+              <Radio size={20} className={isActive ? 'animate-pulse text-white' : ''} />
+              <span className="font-medium tracking-wide">Live Telemetry</span>
+            </>
+          )}
         </NavLink>
         <NavLink to="/watch" className={({isActive}) => `flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive ? 'bg-card text-white shadow-[0_0_15px_rgba(255,255,255,0.05)] border border-gray-700/50 scale-105' : 'text-gray-400 hover:text-white hover:bg-gray-800/50 hover:scale-105'}`}>
           <PlayCircle size={20} />
