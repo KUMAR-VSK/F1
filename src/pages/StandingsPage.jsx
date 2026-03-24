@@ -107,9 +107,12 @@ export default function StandingsPage() {
                       </span>
                     </td>
                     <td className="p-4">
-                      <div className="flex flex-col">
-                        <span className="font-bold text-lg text-white group-hover:text-f1red transition-colors">{team.Constructor.name}</span>
-                        <span className="text-xs text-gray-500 font-medium">{team.Constructor.nationality}</span>
+                      <div className="flex items-center gap-4">
+                        <DriverAvatar wikiUrl={team.Constructor.url} fallbackName={team.Constructor.name} />
+                        <div className="flex flex-col">
+                          <span className="font-bold text-lg text-white group-hover:text-f1red transition-colors">{team.Constructor.name}</span>
+                          <span className="text-xs text-gray-500 font-medium">{team.Constructor.nationality}</span>
+                        </div>
                       </div>
                     </td>
                     <td className="p-4 text-center text-gray-400 font-mono">{team.wins}</td>
