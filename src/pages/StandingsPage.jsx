@@ -31,8 +31,13 @@ export default function StandingsPage() {
       getDriverStandings(),
       getConstructorStandings()
     ]).then(([d, c]) => {
-      setDrivers(d);
-      setConstructors(c);
+      setDrivers(d || []);
+      setConstructors(c || []);
+      setLoading(false);
+    }).catch(err => {
+      console.error("Standings error:", err);
+      setDrivers([]);
+      setConstructors([]);
       setLoading(false);
     });
   }, []);
