@@ -4,8 +4,38 @@ import WatchRace from './pages/WatchRace';
 import DashboardPage from './pages/DashboardPage';
 import StandingsPage from './pages/StandingsPage';
 import WeekendView from './pages/WeekendView';
+import { useEffect, useRef } from 'react';
+import { getCurrentWeekend } from './services/sessionService';
+import { triggerNotification } from './services/notificationService';
 
 function App() {
+  const notifiedSessions = useRef(new Set());
+
+  useEffect(() => {
+    const checkSessions = async () => {
+      const weekend = await getCurrentWeekend();
+      if (!weekend) return;
+      
+      const now = new Date().getTime();
+      weekend.forEach(session => {
+        const timeDiff = session.timestamp - now;
+        const minutesUntil = Math.round(timeDiff / 60000);
+        
+        if (minutesUntil <= 10 && minutesUntil > 0 && !notifiedSessions.current.has(session.id)) {
+          triggerNotification("F1 Session Starting Soon!", `${session.name} begins in ${minutesUntil} minutes!`);
+          notifiedSessions.current.add(session.id);
+        } else if (minutesUntil === 0 && !notifiedSessions.current.has(`${session.id}-live`)) {
+          triggerNotification("F1 Session LIVE!", `${session.name} is now LIVE.`);
+          notifiedSessions.current.add(`${session.id}-live`);
+        }
+      });
+    };
+    
+    // Check every minute
+    checkSessions();
+    const interval = setInterval(checkSessions, 60000);
+    return () => clearInterval(interval);
+  }, []);
   return (
     <Router>
       <div className="flex h-screen bg-darker">
