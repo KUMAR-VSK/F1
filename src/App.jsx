@@ -1,6 +1,5 @@
-import { HashRouter as Router, Routes, Route } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
-import WatchRace from './pages/WatchRace';
 import DashboardPage from './pages/DashboardPage';
 import StandingsPage from './pages/StandingsPage';
 import WeekendView from './pages/WeekendView';
@@ -17,7 +16,7 @@ function App() {
       if (!weekend) return;
       
       const now = new Date().getTime();
-      weekend.forEach(session => {
+      const currentSessions = weekend.map(session => {
         const timeDiff = session.timestamp - now;
         const minutesUntil = Math.round(timeDiff / 60000);
         
@@ -36,9 +35,12 @@ function App() {
     const interval = setInterval(checkSessions, 60000);
     return () => clearInterval(interval);
   }, []);
+
+  const lastOpened = localStorage.getItem('f1_last_opened') || 'weekend';
+
   return (
     <Router>
-      <div className="flex h-screen bg-darker">
+      <div className="flex h-screen bg-[#0a0a0c]">
         <Sidebar />
         <main className="flex-1 overflow-hidden relative selection:bg-f1red selection:text-white">
           {/* Drag area for macOS frameless window */}
@@ -46,7 +48,7 @@ function App() {
           
           <div className="h-full pt-8 overflow-y-auto">
             <Routes>
-              <Route path="/" element={<WatchRace />} />
+              <Route path="/" element={<Navigate to={`/${lastOpened}`} replace />} />
               <Route path="/weekend" element={<WeekendView />} />
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/standings" element={<StandingsPage />} />
