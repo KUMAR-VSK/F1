@@ -1,0 +1,42 @@
+const { app, BrowserWindow, shell } = require('electron');
+const path = require('path');
+
+function createWindow() {
+  const mainWindow = new BrowserWindow({
+    width: 1280,
+    height: 800,
+    backgroundColor: '#0a0a0c',
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      nodeIntegration: true,
+      contextIsolation: false
+    },
+    titleBarStyle: 'hiddenInset', // Makes it look premium on macOS
+  });
+
+  // Open target links externally so they don't break the app flow
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    shell.openExternal(url);
+    return { action: 'deny' };
+  });
+
+  // In development, load from Vite dev server
+  if (process.defaultApp || /[\\/]electron-prebuilt[\\/]/.test(process.execPath) || /[\\/]electron[\\/]/.test(process.execPath)) {
+    mainWindow.loadURL('http://localhost:5173');
+    // mainWindow.webContents.openDevTools();
+  } else {
+    mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
+  }
+}
+
+app.whenReady().then(() => {
+  createWindow();
+
+  app.on('activate', function () {
+    if (BrowserWindow.getAllWindows().length === 0) createWindow();
+  });
+});
+
+app.on('window-all-closed', function () {
+  if (process.platform !== 'darwin') app.quit();
+});
