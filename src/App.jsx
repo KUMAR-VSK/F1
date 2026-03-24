@@ -4,6 +4,8 @@ import DashboardPage from './pages/DashboardPage';
 import StandingsPage from './pages/StandingsPage';
 import WeekendView from './pages/WeekendView';
 import LiveTelemetry from './pages/LiveTelemetry';
+import WatchPage from './pages/WatchPage';
+import SettingsPage from './pages/SettingsPage';
 import { useEffect, useRef } from 'react';
 import { getCurrentWeekend } from './services/sessionService';
 import { triggerNotification } from './services/notificationService';
@@ -13,11 +15,15 @@ function App() {
 
   useEffect(() => {
     const checkSessions = async () => {
+      // Check if notifications are disabled in settings
+      const notifsEnabled = localStorage.getItem('f1_notifications') !== 'false';
+      if (!notifsEnabled) return;
+
       const weekend = await getCurrentWeekend();
       if (!weekend) return;
       
       const now = new Date().getTime();
-      const currentSessions = weekend.map(session => {
+      weekend.forEach(session => {
         const timeDiff = session.timestamp - now;
         const minutesUntil = Math.round(timeDiff / 60000);
         
@@ -52,8 +58,10 @@ function App() {
               <Route path="/" element={<Navigate to={`/${lastOpened}`} replace />} />
               <Route path="/weekend" element={<WeekendView />} />
               <Route path="/live" element={<LiveTelemetry />} />
+              <Route path="/watch" element={<WatchPage />} />
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/standings" element={<StandingsPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
             </Routes>
           </div>
         </main>

@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { CalendarDays, LayoutDashboard, Trophy, Radio } from 'lucide-react';
+import { CalendarDays, LayoutDashboard, Trophy, Radio, Settings, PlayCircle } from 'lucide-react';
 
 export default function Sidebar() {
   return (
@@ -20,6 +20,10 @@ export default function Sidebar() {
           <Radio size={20} className={isActive ? 'animate-pulse text-white' : ''} />
           <span className="font-medium tracking-wide">Live Telemetry</span>
         </NavLink>
+        <NavLink to="/watch" className={({isActive}) => `flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive ? 'bg-card text-white shadow-[0_0_15px_rgba(255,255,255,0.05)] border border-gray-700/50 scale-105' : 'text-gray-400 hover:text-white hover:bg-gray-800/50 hover:scale-105'}`}>
+          <PlayCircle size={20} />
+          <span className="font-medium tracking-wide">Watch Stream</span>
+        </NavLink>
         <NavLink to="/dashboard" className={({isActive}) => `flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive ? 'bg-card text-white shadow-[0_0_15px_rgba(255,255,255,0.05)] border border-gray-700/50 scale-105' : 'text-gray-400 hover:text-white hover:bg-gray-800/50 hover:scale-105'}`}>
           <LayoutDashboard size={20} />
           <span className="font-medium tracking-wide">Dashboard</span>
@@ -27,6 +31,13 @@ export default function Sidebar() {
         <NavLink to="/standings" className={({isActive}) => `flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive ? 'bg-card text-white shadow-[0_0_15px_rgba(255,255,255,0.05)] border border-gray-700/50 scale-105' : 'text-gray-400 hover:text-white hover:bg-gray-800/50 hover:scale-105'}`}>
           <Trophy size={20} />
           <span className="font-medium tracking-wide">Standings</span>
+        </NavLink>
+      </nav>
+
+      <nav className="px-4 pb-4">
+        <NavLink to="/settings" className={({isActive}) => `flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive ? 'bg-card text-white shadow-[0_0_15px_rgba(255,255,255,0.05)] border border-gray-700/50 scale-105' : 'text-gray-400 hover:text-white hover:bg-gray-800/50 hover:scale-105'}`}>
+          <Settings size={20} />
+          <span className="font-medium tracking-wide">Settings</span>
         </NavLink>
       </nav>
       
