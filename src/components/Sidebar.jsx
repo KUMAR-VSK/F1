@@ -1,7 +1,21 @@
 import { NavLink } from 'react-router-dom';
 import { CalendarDays, LayoutDashboard, Trophy, Radio, Settings, PlayCircle } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { getCurrentWeekend } from '../services/sessionService';
 
 export default function Sidebar() {
+  const [isLive, setIsLive] = useState(false);
+
+  useEffect(() => {
+    const check = async () => {
+      const weekend = await getCurrentWeekend();
+      setIsLive(weekend?.some(s => s.status === 'LIVE') ?? false);
+    };
+    check();
+    const interval = setInterval(check, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className="w-64 bg-dark flex flex-col pt-12 border-r border-gray-800 h-full">
       <div className="px-6 mb-8 flex items-center justify-center">
@@ -17,12 +31,15 @@ export default function Sidebar() {
           <span className="font-medium tracking-wide">Weekend View</span>
         </NavLink>
         <NavLink to="/live" className={({isActive}) => `flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive ? 'bg-f1red text-white shadow-[0_0_15px_rgba(225,6,0,0.4)] border border-red-800 scale-105' : 'text-gray-400 hover:text-white hover:bg-gray-800/50 hover:scale-105'}`}>
-          {({isActive}) => (
-            <>
-              <Radio size={20} className={isActive ? 'animate-pulse text-white' : ''} />
-              <span className="font-medium tracking-wide">Live Telemetry</span>
-            </>
-          )}
+          {({isActive}) => (<>
+            <Radio size={20} className={isActive || isLive ? 'animate-pulse text-white' : ''} />
+            <span className="font-medium tracking-wide flex items-center gap-2">
+              Live Telemetry
+              {isLive && !isActive && (
+                <span className="text-[9px] font-black uppercase tracking-widest text-white bg-f1red px-1.5 py-0.5 rounded animate-pulse">LIVE</span>
+              )}
+            </span>
+          </>)}
         </NavLink>
         <NavLink to="/watch" className={({isActive}) => `flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive ? 'bg-card text-white shadow-[0_0_15px_rgba(255,255,255,0.05)] border border-gray-700/50 scale-105' : 'text-gray-400 hover:text-white hover:bg-gray-800/50 hover:scale-105'}`}>
           <PlayCircle size={20} />
